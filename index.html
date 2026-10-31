@@ -1,0 +1,169 @@
+<html>
+    <head>
+        <title>
+            Todo App
+        </title>
+
+        <style>
+            * {
+                font-size: 30px;
+                text-align: center;
+            }
+
+            body {
+                background-color: azure;
+            }
+
+            table {
+                margin: auto;
+                width: 70%;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>
+            Todo App
+        </h1>
+
+        <form onsubmit="save(event)">
+            <label> Enter Task </label>
+            <br/>
+
+            <input type="text"
+                   id="id_task"
+                   placeholder="Enter Your Task"
+                   size="25"
+            />
+
+            <br/><br/>
+
+            <input type="submit"
+                   id="id_btn"
+                   value="Save Task"
+            />
+        </form>
+
+        <h2 id="id_msg"></h2>
+
+        <br/>
+
+        <table border="5">
+            <thead>
+                <tr>
+                    <th> Task </th>
+                    <th> Delete </th>
+                </tr>
+            </thead>
+
+            <tbody id="id_info">
+            </tbody>
+        </table>
+
+        <script>
+            function save(event)
+            {
+                event.preventDefault();
+
+                let task = document.getElementById("id_task");
+                let btn = document.getElementById("id_btn");
+                let msg = document.getElementById("id_msg");
+
+                if (task.value.trim() === "")
+                {
+                    alert("task cannot be empty");
+                    msg.textContent = "";
+                    task.focus();
+                    return;
+                }
+
+                btn.disabled = true;
+
+                let url = " https://todo31oct.onrender.com/save";
+
+                let data = {
+                    task : task.value
+                };
+
+                let options = {
+                    method : "POST",
+                    headers : {"Content-Type": "application/json"},
+                    body : JSON.stringify(data)
+                };
+
+                fetch(url, options)
+                    .then(res => res.text())
+                    .then(data => {
+                        alert(data);
+
+                        task.value = "";
+                        task.focus();
+                        btn.disabled = false;
+
+                        findAll();
+                    })
+                    .catch(err => {
+                        msg.textContent = "issue " + err;
+                        btn.disabled = false;
+                    });
+            }
+
+            function findAll()
+            {
+                let info = document.getElementById("id_info");
+
+                let url = " https://todo31oct.onrender.com/findall";
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        let output = "";
+
+                        for (let i = 0; i < data.length; i++)
+                        {
+                            output += "<tr>";
+
+                            output += "<td>" + data[i].task + "</td>";
+
+                            output += "<td>";
+                            output += "<button onclick='delData(";
+                            output += data[i].id;
+                            output += ")'>Delete</button>";
+                            output += "</td>";
+
+                            output += "</tr>";
+                        }
+
+                        info.innerHTML = output;
+                    })
+                    .catch(err => {
+                        console.log("issue " + err);
+                    });
+            }
+
+            function delData(id)
+            {
+                if (confirm("r u sure ???"))
+                {
+                    let url = " https://todo31oct.onrender.com/deletebyid/" + id;
+
+                    let options = {
+                        method : "DELETE"
+                    };
+
+                    fetch(url, options)
+                        .then(res => res.text())
+                        .then(data => {
+                            alert(data);
+                            findAll();
+                        })
+                        .catch(err => {
+                            console.log("issue " + err);
+                        });
+                }
+            }
+
+            findAll();
+        </script>
+    </body>
+</html>
